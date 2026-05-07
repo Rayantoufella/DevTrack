@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description');
-            $table->enum('status', ['pending', 'in_progress', 'completed'])->default('pending');
+            $table->enum('status', ['todo', 'in_progress', 'done'])->default('todo');
             $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
             $table->dateTime('deadline');
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('project_id')->constrained('projects');
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrentOnUpdate();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
     }
 
