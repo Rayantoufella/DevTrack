@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('description');
             $table->dateTime('deadline');
             $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
             $table->softDeletes();
         });
     }
