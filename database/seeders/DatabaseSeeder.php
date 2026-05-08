@@ -2,33 +2,60 @@
 
 namespace Database\Seeders;
 
+use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Project;
-use App\Models\Task;
-
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        $users = User::factory()->count(10)->create();
-        $projects = Project::factory()->count(10)->create();
+        // 20 users (password = "password" pour tous)
+        $users = User::factory()->count(20)->create();
 
+        // 15 projets, chacun avec 1 lead + 2-4 developers + 5-10 tâches
+        Project::factory()->count(15)->create()->each(function (Project $project) use ($users) {
+            // Lead aléatoire
+            $lead = $users->random();
 
-        $projects->each(function($project) use ($users){
-            $project->users()->attach($users->random(3) ,['role' => 'developer']);
+            // 2-4 developers (exclus le lead pour éviter les doublons pivot)
+            $developers = $users
+                ->where('id', '!=', $lead->id)
+                ->random(rand(2, 4));
 
-            $project->users()->attach($users->first(),['role'=> 'lead']);
+            // Promotion : un user qui dirige un projet devient lead globalement.
+            if ($lead->role !== 'lead') {
+                $lead->update(['role' => 'lead']);
+            }
+
+            // Attache le lead
+            $project->users()->attach($lead->id, [
+                'role'        => 'lead',
+                'assigned_at' => now(),
+            ]);
+
+            // Attache les developers
+            foreach ($developers as $dev) {
+                $project->users()->attach($dev->id, [
+                    'role'        => 'developer',
+                    'assigned_at' => now(),
+                ]);
+            }
+
+            // 5-10 tâches par projet, chacune assignée à un membre du projet
+            $members = collect([$lead])->merge($developers);
+
+            Task::factory()
+                ->count(rand(5, 10))
+                ->state(fn () => [
+                    'project_id' => $project->id,
+                    'user_id'    => $members->random()->id,
+                ])
+                ->create();
         });
-
-        Task::factory()->count(20)->create();
-        
     }
 }

@@ -24,11 +24,11 @@ class ProjectPolicy
     }
 
     /**
-     * US3 — tout user authentifié peut créer un projet (et devient lead).
+     * US3 — seul un user avec le rôle global "lead" peut créer un projet.
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->isLead();
     }
 
     /**

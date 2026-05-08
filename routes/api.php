@@ -8,6 +8,5 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// US13 — Endpoint API tâches d'un projet
 Route::get('/projects/{project}/tasks', [TaskController::class, 'index'])
     ->name('api.projects.tasks.index');
