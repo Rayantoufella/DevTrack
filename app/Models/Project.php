@@ -22,30 +22,17 @@ class Project extends Model
      */
     protected function title(): Attribute
     {
-        return Attribute::set(fn ($value) => ucfirst($value));
+        return Attribute::set(fn($value) => ucfirst($value));
     }
 
     public function users()
     {
-        return $this->belongsToMany(User::class)
+        return $this->belongsToMany(User::class, 'project_user', 'project_id', 'user_id')
             ->withPivot('role', 'assigned_at', 'removed_at');
     }
 
     public function tasks()
     {
         return $this->hasMany(Task::class);
-    }
-
-    public function isMember(User $user): bool
-    {
-        return $this->users()->whereKey($user->id)->exists();
-    }
-
-    public function isLead(User $user): bool
-    {
-        return $this->users()
-            ->whereKey($user->id)
-            ->wherePivot('role', 'lead')
-            ->exists();
     }
 }
