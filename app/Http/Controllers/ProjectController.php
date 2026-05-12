@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
@@ -65,12 +66,15 @@ class ProjectController extends Controller
         $this->authorize('view', $project);
 
         $project->load(['users', 'tasks.user']);
-
-        // Évite N+1 : chaque @can('update', $task) appelle $task->project->isLead()
-        // sans cette ligne, $task->project ferait une requête supplémentaire par tâche.
         $project->tasks->each->setRelation('project', $project);
 
-        return view('projects.show', compact('project'));
+        $role = $project->users
+            ->firstWhere('id', Auth::id())
+            ?->pivot->role ?? 'developer';
+
+        $stats = $project->taskStats();
+
+        return view('projects.show', compact('project', 'role', 'stats'));
     }
 
     /**
