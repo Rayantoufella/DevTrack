@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
-})->middleware('auth:sanctum');
+})->middleware('auth');
 
 // US13 — Endpoint API tâches d'un projet
 Route::get('/projects/{project}/tasks', [TaskController::class, 'index'])
