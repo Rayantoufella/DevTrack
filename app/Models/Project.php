@@ -26,4 +26,29 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    /**
+     * Statistiques des tâches du projet (nécessite le chargement préalable de la relation tasks).
+     */
+    public function taskStats(): array
+    {
+        $tasks = $this->tasks;
+
+        $total = $tasks->count();
+        $done  = $tasks->where('status', 'done')->count();
+
+        return [
+            'total'    => $total,
+            'done'     => $done,
+            'progress' => $tasks->where('status', 'in_progress')->count(),
+            'todo'     => $tasks->where('status', 'todo')->count(),
+            'urgent'   => $tasks->filter(fn ($t) =>
+                $t->status !== 'done'
+                && $t->deadline
+                && now()->lte($t->deadline)
+                && now()->diffInHours($t->deadline, false) <= 48
+            )->count(),
+            'pct'      => $total > 0 ? (int) round($done / $total * 100) : 0,
+        ];
+    }
 }

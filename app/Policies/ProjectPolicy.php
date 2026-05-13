@@ -14,9 +14,9 @@ class ProjectPolicy
     }
 
 
-    public function view(User $user, Project $project): bool
+    public function view(User $user, Project $project)
     {
-        return $project->user()
+        return $project->users()
             ->where('user_id', $user->id)
             ->exists();
     }
@@ -27,34 +27,34 @@ class ProjectPolicy
     }
 
 
-    public function update(User $user, Project $project): bool
+    public function update(User $user, Project $project)
     {
-        return $project->user()
+        return $project->users()
         ->where('user_id', $user->id)
         ->where('role', 'lead')
         ->exists();
     }
 
-    public function delete(User $user, Project $project): bool
+    public function delete(User $user, Project $project)
     {
-        return $project->user()
+        return $project->users()
         ->where('user_id', $user->id)
         ->where('role', 'lead')
         ->exists();
     }
 
 
-    public function restore(User $user, Project $project): bool
+    public function restore(User $user, Project $project)
     {
-        return $project->user()
+        return $project->users()
         ->where('user_id', $user->id)
         ->where('role', 'lead')
         ->exists();
     }
 
-    public function forceDelete(User $user, Project $project): bool
+    public function forceDelete(User $user, Project $project)
     {
-        return $project->user()
+        return $project->users()
         ->where('user_id', $user->id)
         ->where('role', 'lead')
         ->exists();
@@ -63,7 +63,7 @@ class ProjectPolicy
 
     public function manageMembers(User $user, Project $project): bool
     {
-        return $project->user()
+        return $project->users()
         ->where('user_id', $user->id)
         ->where('role', 'lead')
         ->exists();
@@ -71,7 +71,7 @@ class ProjectPolicy
 
     public function createTask(User $user, Project $project): bool
     {
-        return $project->user()
+        return $project->users()
         ->where('user_id', $user->id)
         ->where('role', 'lead')
         ->exists();

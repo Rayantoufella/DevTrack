@@ -33,7 +33,7 @@
                         <x-input-label for="deadline" :value="__('Deadline')" />
                         <x-text-input id="deadline" name="deadline" type="date"
                                       class="mt-1 block w-full"
-                                      :value="old('deadline', \Carbon\Carbon::parse($project->deadline)->format('Y-m-d'))"
+                                      :value="old('deadline', Carbon\Carbon::parse($project->deadline)->format('Y-m-d'))"
                                       required />
                         <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
                     </div>
