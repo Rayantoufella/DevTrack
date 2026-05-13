@@ -8,22 +8,35 @@ use Illuminate\View\View;
 
 class SidebarComposer
 {
-    public function compose(View $view): void
+    public function compose(View $view)
     {
+        // If badges already set, do nothing
         if ($view->offsetExists('sidebarBadges')) {
             return;
         }
 
         $user = Auth::user();
 
-        if (! $user) {
+        // If no user is connected, do nothing
+        if (!$user) {
             return;
         }
 
+        $projectsCount = $user->projects()->count();
+
+        $tasksCount = Task::where('user_id', $user->id)
+            ->where('status', '!=', 'done')
+            ->count();
+
+        $archivesCount = $user->projects()
+            ->wherePivot('role', 'lead')
+            ->onlyTrashed()
+            ->count();
+
         $view->with('sidebarBadges', [
-            'projects' => $user->projects()->count(),
-            'tasks'    => Task::where('user_id', $user->id)->where('status', '!=', 'done')->count(),
-            'archives' => $user->projects()->wherePivot('role', 'lead')->onlyTrashed()->count(),
+            'projects' => $projectsCount,
+            'tasks'    => $tasksCount,
+            'archives' => $archivesCount,
         ]);
     }
 }

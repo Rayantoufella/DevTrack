@@ -7,12 +7,12 @@ use Illuminate\Validation\Rule;
 
 class UpdateTaskStatusRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize()
     {
         return true;
     }
 
-    public function rules(): array
+    public function rules()
     {
         return [
             'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],

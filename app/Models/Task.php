@@ -16,9 +16,8 @@ class Task extends Model
         'priority',
         'deadline',
         'project_id',
-        'user_id'
+        'user_id',
     ];
-
 
     public function project()
     {
@@ -28,5 +27,13 @@ class Task extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Use like: Task::urgent()->get();
+    public function scopeUrgent($query)
+    {
+        return $query
+            ->where('status', '!=', 'done')
+            ->whereBetween('deadline', [now(), now()->addHours(48)]);
     }
 }

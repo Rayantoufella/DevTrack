@@ -10,15 +10,11 @@ class Project extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'title',
-        'description',
-        'deadline'
-    ];
+    protected $fillable = ['title', 'description', 'deadline'];
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'project_user', 'project_id', 'user_id')
+        return $this->belongsToMany(User::class)
             ->withPivot('role', 'assigned_at', 'removed_at');
     }
 
@@ -27,28 +23,35 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
-    /**
-     * Statistiques des tâches du projet (nécessite le chargement préalable de la relation tasks).
-     */
-    public function taskStats(): array
+    // Counts tasks by status and returns simple numbers used in views
+    public function taskStats()
     {
         $tasks = $this->tasks;
-
         $total = $tasks->count();
-        $done  = $tasks->where('status', 'done')->count();
+        $done = $tasks->where('status', 'done')->count();
+
+        $urgent = 0;
+        foreach ($tasks as $task) {
+            if ($task->status !== 'done' && $task->deadline) {
+                $hoursLeft = now()->diffInHours($task->deadline, false);
+                if ($hoursLeft >= 0 && $hoursLeft <= 48) {
+                    $urgent++;
+                }
+            }
+        }
+
+        $pct = 0;
+        if ($total > 0) {
+            $pct = (int) round($done / $total * 100);
+        }
 
         return [
             'total'    => $total,
             'done'     => $done,
             'progress' => $tasks->where('status', 'in_progress')->count(),
             'todo'     => $tasks->where('status', 'todo')->count(),
-            'urgent'   => $tasks->filter(fn ($t) =>
-                $t->status !== 'done'
-                && $t->deadline
-                && now()->lte($t->deadline)
-                && now()->diffInHours($t->deadline, false) <= 48
-            )->count(),
-            'pct'      => $total > 0 ? (int) round($done / $total * 100) : 0,
+            'urgent'   => $urgent,
+            'pct'      => $pct,
         ];
     }
 }

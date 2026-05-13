@@ -7,14 +7,15 @@ use Illuminate\Validation\Rule;
 
 class UpdateTaskRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize()
     {
         return true;
     }
 
-    public function rules(): array
+    public function rules()
     {
         $project = $this->route('project');
+        $projectId = $project ? $project->id : null;
 
         return [
             'title'       => ['required', 'string', 'max:255'],
@@ -25,12 +26,14 @@ class UpdateTaskRequest extends FormRequest
             'user_id'     => [
                 'required',
                 Rule::exists('project_user', 'user_id')
-                    ->where(fn ($q) => $q->where('project_id', $project?->id)),
+                    ->where(function ($query) use ($projectId) {
+                        $query->where('project_id', $projectId);
+                    }),
             ],
         ];
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
             'user_id.exists' => 'L\'utilisateur assigné doit être membre du projet.',

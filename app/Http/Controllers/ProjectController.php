@@ -5,33 +5,27 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
-use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
-    /**
-     * US2 — Dashboard : projets de l'utilisateur (lead ou developer)
-     * avec total tâches et tâches terminées.
-     */
+    // Show all projects of the connected user
     public function index()
     {
         $this->authorize('viewAny', Project::class);
 
         $projects = Auth::user()
             ->projects()
-            ->withCount([
-                'tasks',
-                'tasks as completed_tasks_count' => fn ($q) => $q->where('status', 'done'),
-            ])
+            ->withCount('tasks')
+            ->withCount(['tasks as completed_tasks_count' => function ($query) {
+                $query->where('status', 'done');
+            }])
             ->get();
 
         return view('projects.index', compact('projects'));
     }
 
-    /**
-     * US3 — formulaire de création.
-     */
+    // Form to create a new project
     public function create()
     {
         $this->authorize('create', Project::class);
@@ -39,9 +33,7 @@ class ProjectController extends Controller
         return view('projects.create');
     }
 
-    /**
-     * US3 — enregistrement + l'utilisateur devient lead.
-     */
+    // Save the new project and make the user the lead
     public function store(StoreProjectRequest $request)
     {
         $this->authorize('create', Project::class);
@@ -58,28 +50,26 @@ class ProjectController extends Controller
             ->with('success', 'Projet créé.');
     }
 
-    /**
-     * US8 (partiel) — détail du projet avec tâches et membres.
-     */
+    // Show one project with its tasks and members
     public function show(Project $project)
     {
         $this->authorize('view', $project);
 
         $project->load(['users', 'tasks.user']);
-        $project->tasks->each->setRelation('project', $project);
 
-        $role = $project->users
-            ->firstWhere('id', Auth::id())
-            ?->pivot->role ?? 'developer';
+        // Find the role of the current user inside this project
+        $role = 'developer';
+        $member = $project->users->firstWhere('id', Auth::id());
+        if ($member) {
+            $role = $member->pivot->role;
+        }
 
         $stats = $project->taskStats();
 
         return view('projects.show', compact('project', 'role', 'stats'));
     }
 
-    /**
-     * US4 — formulaire de modification.
-     */
+    // Form to edit a project
     public function edit(Project $project)
     {
         $this->authorize('update', $project);
@@ -87,9 +77,7 @@ class ProjectController extends Controller
         return view('projects.edit', compact('project'));
     }
 
-    /**
-     * US4 — mise à jour.
-     */
+    // Update the project
     public function update(UpdateProjectRequest $request, Project $project)
     {
         $this->authorize('update', $project);
@@ -101,9 +89,7 @@ class ProjectController extends Controller
             ->with('success', 'Projet mis à jour.');
     }
 
-    /**
-     * US5 — archive (soft delete).
-     */
+    // Archive the project (soft delete)
     public function destroy(Project $project)
     {
         $this->authorize('delete', $project);
@@ -115,9 +101,7 @@ class ProjectController extends Controller
             ->with('success', 'Projet archivé.');
     }
 
-    /**
-     * US5/US6 — Liste des projets archivés du lead courant.
-     */
+    // Show archived projects of the current lead
     public function archives()
     {
         $this->authorize('viewAny', Project::class);
@@ -132,9 +116,7 @@ class ProjectController extends Controller
         return view('projects.archives', compact('projects'));
     }
 
-    /**
-     * US6 — Restaurer un projet archivé.
-     */
+    // Restore an archived project
     public function restore(Project $project)
     {
         $this->authorize('restore', $project);
@@ -146,9 +128,7 @@ class ProjectController extends Controller
             ->with('success', 'Projet restauré.');
     }
 
-    /**
-     * Bonus — Suppression définitive depuis la page Archives.
-     */
+    // Delete a project permanently
     public function forceDelete(Project $project)
     {
         $this->authorize('forceDelete', $project);

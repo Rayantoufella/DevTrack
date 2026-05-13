@@ -10,17 +10,12 @@ use App\Models\Task;
 
 class TaskController extends Controller
 {
-    /**
-     * US8 — Liste des tâches d'un projet (avec assigné chargé).
-     */
+    // Show all tasks of a project
     public function index(Project $project)
     {
         $this->authorize('view', $project);
 
         $project->load('tasks.user');
-
-        // Évite N+1 sur @can('update', $task) qui appelle $task->project->isLead()
-        $project->tasks->each->setRelation('project', $project);
 
         return view('tasks.index', [
             'project' => $project,
@@ -28,9 +23,7 @@ class TaskController extends Controller
         ]);
     }
 
-    /**
-     * US9 — formulaire de création (lead).
-     */
+    // Form to create a new task (only lead)
     public function create(Project $project)
     {
         $this->authorize('createTask', $project);
@@ -43,39 +36,32 @@ class TaskController extends Controller
         ]);
     }
 
-    /**
-     * US9 — enregistrement d'une tâche.
-     */
+    // Save the new task
     public function store(StoreTaskRequest $request, Project $project)
     {
         $this->authorize('createTask', $project);
 
-        $project->tasks()->create([
-            ...$request->validated(),
-            'status' => 'todo',
-        ]);
+        $data = $request->validated();
+        $data['status'] = 'todo';
+
+        $project->tasks()->create($data);
 
         return redirect()
             ->route('projects.tasks.index', $project)
             ->with('success', 'Tâche créée.');
     }
 
-    /**
-     * Détail d'une tâche.
-     */
+    // Show one task
     public function show(Project $project, Task $task)
     {
         $this->authorize('view', $task);
 
         $task->load('user');
-        $task->setRelation('project', $project); // évite reload pour @can
 
         return view('tasks.show', compact('project', 'task'));
     }
 
-    /**
-     * US10 — formulaire d'édition (lead).
-     */
+    // Form to edit a task (only lead)
     public function edit(Project $project, Task $task)
     {
         $this->authorize('update', $task);
@@ -89,9 +75,7 @@ class TaskController extends Controller
         ]);
     }
 
-    /**
-     * US10 — mise à jour complète (lead).
-     */
+    // Update the task (only lead)
     public function update(UpdateTaskRequest $request, Project $project, Task $task)
     {
         $this->authorize('update', $task);
@@ -103,9 +87,7 @@ class TaskController extends Controller
             ->with('success', 'Tâche mise à jour.');
     }
 
-    /**
-     * US11 — le developer assigné change uniquement le statut.
-     */
+    // The developer changes only the status of his task
     public function updateStatus(UpdateTaskStatusRequest $request, Project $project, Task $task)
     {
         $this->authorize('updateStatus', $task);
@@ -117,9 +99,7 @@ class TaskController extends Controller
             ->with('success', 'Statut mis à jour.');
     }
 
-    /**
-     * US12 — suppression (lead).
-     */
+    // Delete the task (only lead)
     public function destroy(Project $project, Task $task)
     {
         $this->authorize('delete', $task);
