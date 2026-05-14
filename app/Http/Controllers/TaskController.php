@@ -56,7 +56,7 @@ class TaskController extends Controller
         ]);
 
         return redirect()
-            ->route('projects.tasks.index', $project)
+            ->route('projects.show', $project)
             ->with('success', 'Tâche créée.');
     }
 
@@ -99,7 +99,7 @@ class TaskController extends Controller
         $task->update($request->validated());
 
         return redirect()
-            ->route('projects.tasks.index', $project)
+            ->route('projects.show', $project)
             ->with('success', 'Tâche mise à jour.');
     }
 
@@ -113,7 +113,7 @@ class TaskController extends Controller
         $task->update($request->validated());
 
         return redirect()
-            ->route('projects.tasks.index', $project)
+            ->route('projects.show', $project)
             ->with('success', 'Statut mis à jour.');
     }
 
@@ -127,7 +127,7 @@ class TaskController extends Controller
         $task->delete();
 
         return redirect()
-            ->route('projects.tasks.index', $project)
+            ->route('projects.show', $project)
             ->with('success', 'Tâche supprimée.');
     }
 }
