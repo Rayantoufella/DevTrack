@@ -12,7 +12,6 @@ Construit avec **Laravel 13** + **Breeze** + **Tailwind**.
 - Laravel `^13.0`
 - MySQL (XAMPP en local)
 - Tailwind 3 + Alpine.js + Vite (Breeze)
-- Sanctum (pour l'API)
 
 ---
 
@@ -113,17 +112,6 @@ Liste : `mysql -u root DevTrack -e "SELECT name, email FROM users;"`
 | GET, POST, PUT, DELETE | `/projects/{id}/tasks/...` | CRUD tasks (resource nested) |
 | PATCH | `/projects/{id}/tasks/{id}/status` | Changer statut (developer assigné) |
 
-### API (`routes/api.php`)
-
-| Méthode | URI | Action |
-|---|---|---|
-| GET | `/api/projects/{project}/tasks` | Tâches du projet en JSON via `TaskResource` |
-
-Test rapide :
-```bash
-curl -H "Accept: application/json" http://127.0.0.1:8000/api/projects/1/tasks
-```
-
 Liste complète : `php artisan route:list`.
 
 ---
@@ -177,7 +165,6 @@ Toutes les validations passent par des `FormRequest` :
 - **US10** Modifier une tâche (lead)
 - **US11** Changer le statut (developer assigné)
 - **US12** Supprimer une tâche (lead)
-- **US13** API `GET /api/projects/{id}/tasks` avec `TaskResource` + accessor `status_label`
 
 ### Bonus
 - Suppression définitive depuis Archives (`forceDelete`)

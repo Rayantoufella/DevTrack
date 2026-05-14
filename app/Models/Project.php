@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,53 +10,59 @@ class Project extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'title',
-        'description',
-        'deadline'
-    ];
+    // Columns we allow to be filled from a form
+    protected $fillable = ['title', 'description', 'deadline'];
 
-    /**
-     * Bonus — Mutator : stocke le titre avec la première lettre en majuscule.
-     */
-    protected function title(): Attribute
-    {
-        return Attribute::set(fn($value) => ucfirst($value));
-    }
-
+    // A project has many users (through the project_user table)
     public function users()
     {
-        return $this->belongsToMany(User::class, 'project_user', 'project_id', 'user_id')
+        return $this->belongsToMany(User::class)
             ->withPivot('role', 'assigned_at', 'removed_at');
     }
 
+    // A project has many tasks
     public function tasks()
     {
         return $this->hasMany(Task::class);
     }
 
-    /**
-     * Statistiques des tâches du projet (nécessite le chargement préalable de la relation tasks).
-     */
-    public function taskStats(): array
+    // Counts tasks by status and returns simple numbers used in views
+    public function taskStats()
     {
         $tasks = $this->tasks;
 
-        $total = $tasks->count();
-        $done  = $tasks->where('status', 'done')->count();
+        // Count tasks by their status
+        $total    = $tasks->count();
+        $done     = $tasks->where('status', 'done')->count();
+        $progress = $tasks->where('status', 'in_progress')->count();
+        $todo     = $tasks->where('status', 'todo')->count();
+
+        // Count tasks that are not done and have a deadline in the next 48 hours
+        $urgent = 0;
+        foreach ($tasks as $task) {
+            if ($task->status === 'done' || ! $task->deadline) {
+                continue;
+            }
+
+            $hoursLeft = now()->diffInHours($task->deadline, false);
+            if ($hoursLeft >= 0 && $hoursLeft <= 48) {
+                $urgent++;
+            }
+        }
+
+        // Percentage of done tasks (0 if there are no tasks)
+        $pct = 0;
+        if ($total > 0) {
+            $pct = (int) round($done / $total * 100);
+        }
 
         return [
             'total'    => $total,
             'done'     => $done,
-            'progress' => $tasks->where('status', 'in_progress')->count(),
-            'todo'     => $tasks->where('status', 'todo')->count(),
-            'urgent'   => $tasks->filter(fn ($t) =>
-                $t->status !== 'done'
-                && $t->deadline
-                && now()->lte($t->deadline)
-                && now()->diffInHours($t->deadline, false) <= 48
-            )->count(),
-            'pct'      => $total > 0 ? (int) round($done / $total * 100) : 0,
+            'progress' => $progress,
+            'todo'     => $todo,
+            'urgent'   => $urgent,
+            'pct'      => $pct,
         ];
     }
 }

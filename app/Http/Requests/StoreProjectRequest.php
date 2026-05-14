@@ -6,13 +6,12 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProjectRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize()
     {
-        // L'autorisation est gérée par ProjectPolicy via $this->authorize() dans le controller.
         return true;
     }
 
-    public function rules(): array
+    public function rules()
     {
         return [
             'title'       => ['required', 'string', 'max:255'],
@@ -21,7 +20,7 @@ class StoreProjectRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
             'deadline.after' => 'La deadline doit être postérieure à aujourd\'hui.',

@@ -7,28 +7,33 @@ use Illuminate\Validation\Rule;
 
 class AddProjectMemberRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize()
     {
         return true;
     }
 
-    public function rules(): array
+    public function rules()
     {
+        // The project taken from the URL
         $project = $this->route('project');
+
+        // Get the emails of users already in the project
+        $existingEmails = [];
+        if ($project) {
+            $existingEmails = $project->users()->pluck('users.email')->all();
+        }
 
         return [
             'email' => [
                 'required',
                 'email',
                 'exists:users,email',
-                Rule::notIn(
-                    $project ? $project->users()->pluck('users.email')->all() : []
-                ),
+                Rule::notIn($existingEmails),
             ],
         ];
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
             'email.exists' => 'Aucun utilisateur avec cet email.',
