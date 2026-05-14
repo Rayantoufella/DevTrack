@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer(['dashboard', 'projects.show'], SidebarComposer::class);
+        View::composer([
+            'dashboard', 'projects.index', 'projects.show', 'projects.archives',
+            'projects.create', 'projects.edit',
+            'tasks.create', 'tasks.edit',
+        ], SidebarComposer::class);
     }
 }
