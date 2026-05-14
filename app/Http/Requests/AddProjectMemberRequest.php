@@ -14,6 +14,7 @@ class AddProjectMemberRequest extends FormRequest
 
     public function rules()
     {
+        // The project taken from the URL
         $project = $this->route('project');
 
         // Get the emails of users already in the project

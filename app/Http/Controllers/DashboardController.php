@@ -107,13 +107,7 @@ class DashboardController extends Controller
         ];
 
         // 7) Is the user a lead in at least one project?
-        $isLead = false;
-        foreach ($projects as $project) {
-            if (isset($project->pivot->role) && $project->pivot->role === 'lead') {
-                $isLead = true;
-                break;
-            }
-        }
+        $isLead = $filters['lead'] > 0;
 
         return view('dashboard', compact(
             'projects', 'stats', 'filters', 'velocity', 'weekDelta', 'isLead'

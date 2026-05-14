@@ -14,8 +14,7 @@ class UpdateTaskRequest extends FormRequest
 
     public function rules()
     {
-        $project = $this->route('project');
-        $projectId = $project ? $project->id : null;
+        $projectId = $this->route('project')?->id;
 
         return [
             'title'       => ['required', 'string', 'max:255'],
@@ -23,12 +22,10 @@ class UpdateTaskRequest extends FormRequest
             'deadline'    => ['required', 'date'],
             'priority'    => ['required', Rule::in(['low', 'medium', 'high'])],
             'status'      => ['required', Rule::in(['todo', 'in_progress', 'done'])],
+            // The assigned user must be a member of the project
             'user_id'     => [
                 'required',
-                Rule::exists('project_user', 'user_id')
-                    ->where(function ($query) use ($projectId) {
-                        $query->where('project_id', $projectId);
-                    }),
+                Rule::exists('project_user', 'user_id')->where('project_id', $projectId),
             ],
         ];
     }
