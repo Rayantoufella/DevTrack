@@ -23,7 +23,10 @@ class ProjectController extends Controller
             ->withCount([
                 'tasks',
                 'tasks as completed_tasks_count' => fn ($q) => $q->where('status', 'done'),
+                'tasks as urgent_tasks_count'    => fn ($q) => $q->urgent(),
             ])
+            ->with('users:id,name')
+            ->orderBy('deadline')
             ->get();
 
         return view('projects.index', compact('projects'));
@@ -126,7 +129,11 @@ class ProjectController extends Controller
             ->projects()
             ->wherePivot('role', 'lead')
             ->onlyTrashed()
-            ->withCount('tasks')
+            ->withCount([
+                'tasks',
+                'tasks as completed_tasks_count' => fn ($q) => $q->where('status', 'done'),
+            ])
+            ->with('users')
             ->get();
 
         return view('projects.archives', compact('projects'));
